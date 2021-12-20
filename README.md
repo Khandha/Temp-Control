@@ -4,16 +4,16 @@
 
 ###### 1. Decyzje ad technologii
 - backend:
-    - Flask
-    - SQLite
-    - Numpy ?
-    - Multiprocessing -> pool / Dask? (pewnie overkill)
+    x Flask
+    x SQLite
+    x Multiprocessing -> pool / Dask? (pewnie overkill)
 - frontend:
     - charts.js
     - ???
 
 ###### 2. Struktura projektu
 - struktura folderów / plików
+    - TBC
 ###### 3. Implementacja
 - GUI
 - silnik obliczeniowy
