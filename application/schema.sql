@@ -6,3 +6,9 @@ CREATE TABLE temperatures (
     room_temp REAL,
     heater_temp REAL
 );
+
+CREATE TABLE set_temperatures (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    set_temp REAL,
+    time TEXT
+)

@@ -1,45 +1,43 @@
-import sqlite3
+from datetime import datetime
+import time
+from simple_pid import PID
+from multiprocessing import Queue
+
+from helpers import db_connection, db_push_temp, db_fetch_new_set_temp
 
 
-class engine:
-    def __init__(self) -> None:
-        self.roomsize = 4.3 * 4.9 * 2.75  # m^3
+class Engine:
+    dt = 0.3  # s
 
-        self.Tp = 0.1  # step [s]
+    def worker(self, q, room1: 'Room'):
+        print("Worker is running")
+        pid = PID(5, 0.1, 0.1, setpoint=room1.expected_temp)
+        pid.output_limits = (0, 45)
+        start_time = time.time()
+        while True:
+            #  TODO: split into thread
+            if not q.empty():
+                new_temp = q.get()
+                pid.setpoint = new_temp
+                room1.expected_temp = new_temp
+                print("set new temp to: ", new_temp)
+            # print(room1.expected_temp)
+            heater_temp = pid(room1.room_temp)
+            room_temp = room1.update(heater_temp, self.dt)
 
-        self.ti = 0.75  # integral term
-        self.td = 5  # differential term
-        self.kp = 0.015  # proportional term
+            #  TODO: split into thread
+            db_push_temp(room_temp, heater_temp)
 
-        self.e = []  # error value
-        self.e.append(0)
+            time.sleep(self.dt - ((time.time() - start_time) % self.dt))
 
-        self.umin = 0  # V
-        self.umax = 10  # V
-        self.udiff = self.umax - self.umin  # V
-        self.u = []  # V in time
-        self.u.append(0)
 
-        self.temp = []  # C
-        self.temp.append(0)
-        self.tempRequested = 20  # C ?necessary
-        self.tempMax = 32  # C
-        self.tempMin = 20  # C
-        # self.tempDiff = self.temperatureMax - self.temperatureMin
+class Room:
+    def __init__(self):
+        self.room_temp = 19
+        self.expected_temp = 32
 
-        self.B = 0.035  # heat loss factor
-
-    def calculate_regulator(self):
-        # needs inserting:
-        # previous temp
-        # previous error value
-        # this will calculate the regulation in V
-        # returns the upid ? which should be temperature of the heater # # #
-        pass
-
-    def calculate_heater(self):
-        # needs inserting:
-        # upid
-        # tempRequested
-        # returns the temperature of room
-        pass
+    def update(self, heater_power, dt):
+        if heater_power > 0:
+            self.room_temp += 0.002 * heater_power * dt  # play with this value for faster / slower temp changes.
+        self.room_temp -= 0.02 * dt
+        return self.room_temp

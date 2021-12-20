@@ -1,6 +1,7 @@
-from flask import request, render_template, Blueprint
-from main import *
-from main import get_latest_data
+from flask import request, render_template, Blueprint, current_app as app
+from helpers import get_latest_data, get_some_data, set_new_temperature
+from multiprocessing import current_process, Queue
+
 
 page = Blueprint("page", __name__, template_folder="templates")
 
@@ -12,19 +13,26 @@ def index():
 
 @page.route("/temp", methods=["POST"])
 def temp_change():
-    pass
-
+    new_temp = request.args.get("temp")
+    try:
+        if new_temp is None:
+            return {"errorMessage": "no temperature set"}
+    except NameError:
+        print("temperature setting failed")
+    set_new_temperature(app.config['queue'], new_temp)
+    return {"set-temperature": new_temp}
+    #  to check: curl -X POST http://127.0.0.1:5000/temp?temp=17
 
 @page.route("/plot", methods=["GET, POST"])
 def plot():
     # this changes requested temperature in engine
 
     return render_template("subpage.html", bar="data")
-    # this returns template
-    # additionally returns json with some data to chart as beginning
+    # this will return template
+    # additionally json with some data to chart as beginning
     # (from midnight?)
     # also returns how much time left for the heat up
-    # 
+    # TODO
 
 
 @page.route("/plot/more", methods=["GET"])
