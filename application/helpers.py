@@ -8,7 +8,6 @@ from pathlib import Path
 from sqlite3 import Error
 
 
-
 def db_connection():
     db_os_name = Path("C:\\projectspy\\Temp-Control\\application\\db\\t_history.db").resolve()  # TODO: resolve this
     # print(db_os_name)
@@ -27,16 +26,6 @@ def db_push_temp(room_temp, heater_temp):
     db.execute("insert into temperatures (time, room_temp, heater_temp) values (?, ?, ?)",
                (current_time, room_temp, heater_temp))
     db.commit()
-
-
-def db_fetch_new_set_temp(current_temp):
-    db = db_connection()
-    cursor = db.execute("select * from set_temperatures where id = (select max(id) from set_temperatures)")
-    set_temp = cursor.fetchone()[1]
-    if set_temp != current_temp:
-        return set_temp
-    else:
-        return False
 
 
 def get_latest_data():

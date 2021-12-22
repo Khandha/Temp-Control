@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 if __name__ == "__main__":
     room = Room()
-    engine = Engine
+    engine = Engine()
     q = Queue()
     p1 = Process(target=Engine.worker, args=(engine, q, room))
     p1.start()
