@@ -4,9 +4,7 @@
 
 ###### 1. Decyzje ad technologii
 - backend:
-    x Flask
-    x SQLite
-    x Multiprocessing -> pool / Dask? (pewnie overkill)
+    - done
 - frontend:
     - charts.js
     - ???
