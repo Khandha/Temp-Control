@@ -2,8 +2,6 @@ import json
 import os.path
 import sqlite3
 from datetime import datetime
-from decimal import Decimal
-from multiprocessing import current_process
 from pathlib import Path
 from sqlite3 import Error
 
@@ -60,3 +58,10 @@ def get_some_data(count):
 
 def set_new_temperature(q, new_temp):
     q.put(float(new_temp))
+
+
+def limit(value, mini, maxi):
+    if mini is None or maxi is None or value is None:
+        return None
+    else:
+        return min(maxi, max(mini, value))

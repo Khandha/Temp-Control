@@ -13,7 +13,6 @@ if __name__ == "__main__":
     p1.start()
 
     app.config.update(queue=q)
-    print("main: ", room)
     app.register_blueprint(page)
-    print(app.url_map)
+    # print(app.url_map)
     app.run()

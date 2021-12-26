@@ -55,7 +55,6 @@ def estimate():
     print(set_temp)
     engine = Engine()
     room = Room(float(current_temp), float(set_temp))
-    ret_value = 0
     queue = Queue()
 
     p = Process(target=Engine.time_prediction, args=(engine, room, queue))
