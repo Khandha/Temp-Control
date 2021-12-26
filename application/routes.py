@@ -1,7 +1,9 @@
 from flask import request, render_template, Blueprint, current_app as app
-from helpers import get_latest_data, get_some_data, set_new_temperature
-from multiprocessing import current_process, Queue
 
+from engine import Engine, Room
+from helpers import get_latest_data, get_some_data, set_new_temperature
+from multiprocessing import current_process, Queue, Process
+import datetime
 
 page = Blueprint("page", __name__, template_folder="templates")
 
@@ -23,6 +25,7 @@ def temp_change():
     return {"set-temperature": new_temp}
     #  to check: curl -X POST http://127.0.0.1:5000/temp?temp=17
 
+
 @page.route("/plot", methods=["GET, POST"])
 def plot():
     # this changes requested temperature in engine
@@ -42,3 +45,26 @@ def more():
     # this returns some more data in json
     # request to be made with /plot/more?count=<number, like 123> for example
     # http://127.0.0.1:5000/plot/more?count=11
+
+
+@page.route("/estimate", methods=["GET"])
+def estimate():
+    current_temp = request.args.get("current_temp")
+    set_temp = request.args.get("set_temp")
+    print(current_temp)
+    print(set_temp)
+    engine = Engine()
+    room = Room(float(current_temp), float(set_temp))
+    queue = Queue()
+
+    p = Process(target=Engine.time_prediction, args=(engine, room, queue))
+    p.start()
+    p.join()
+    ret_value = queue.get()
+    print(str(datetime.timedelta(seconds=ret_value)))
+    return render_template("subpage.html", bar=(str(datetime.timedelta(seconds=ret_value))))
+    # this will return template
+    # additionally json with some data to chart as beginning
+    # (from midnight?)
+    # also returns how much time left for the heat up
+    # TODO

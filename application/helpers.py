@@ -2,11 +2,8 @@ import json
 import os.path
 import sqlite3
 from datetime import datetime
-from decimal import Decimal
-from multiprocessing import current_process
 from pathlib import Path
 from sqlite3 import Error
-
 
 
 def db_connection():
@@ -27,16 +24,6 @@ def db_push_temp(room_temp, heater_temp):
     db.execute("insert into temperatures (time, room_temp, heater_temp) values (?, ?, ?)",
                (current_time, room_temp, heater_temp))
     db.commit()
-
-
-def db_fetch_new_set_temp(current_temp):
-    db = db_connection()
-    cursor = db.execute("select * from set_temperatures where id = (select max(id) from set_temperatures)")
-    set_temp = cursor.fetchone()[1]
-    if set_temp != current_temp:
-        return set_temp
-    else:
-        return False
 
 
 def get_latest_data():
@@ -71,3 +58,10 @@ def get_some_data(count):
 
 def set_new_temperature(q, new_temp):
     q.put(float(new_temp))
+
+
+def limit(value, mini, maxi):
+    if mini is None or maxi is None or value is None:
+        return None
+    else:
+        return min(maxi, max(mini, value))
