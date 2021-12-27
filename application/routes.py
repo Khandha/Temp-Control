@@ -26,6 +26,11 @@ def temp_change():
     #  to check: curl -X POST http://127.0.0.1:5000/temp?temp=17
 
 
+@page.route("/data", methods=["GET"])
+def get_data():
+    return get_latest_data()
+
+
 @page.route("/plot", methods=["GET, POST"])
 def plot():
     # this changes requested temperature in engine

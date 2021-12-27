@@ -1,6 +1,81 @@
 {% extends "layout.html" %}
 
 {% block body %}
+    <div>
+        <canvas id="temp_chart"></canvas>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const labels = [];
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'Room temperature [C]',
+                backgroundColor: 'rgb(0,41,255)',
+                borderColor: 'rgb(0,41,255)',
+                roomTemp: [0]
+            },
+            {
+                label: 'Heater temperature [C]',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255,99,132)',
+                heaterTemp: [0]
+            }
+            ],
+            options: {
+                responsive: true,
+                scales: {
+                    y: [{
+                        display: true,
+                        ticks: {
+                            beginAtZero: true,
+                            stepValue: 5,
+                            max: 100
+                        }
+                    }],
+                    x: [{
+                        type: 'time',
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 5 // TODO: have a look at this?
+                        }
+                    }]
+                }
+            }
+        };
+
+        const config = {
+            type: 'line',
+            data: data,
+            options: {}
+        };
+
+
+        updateValues(new Chart(
+            document.getElementById('temp_chart'),
+            config
+        ));
+
+        function updateValues(chart) {
+            console.log(chart)
+            $.getJSON("/data").done(function (current_temp) {
+                chart = chart.config._config;
+                let obj = current_temp;
+                chart.data.labels.push(obj.time);
+                console.log("obj time: ", obj.time);
+                chart.data.datasets[0].data.push(obj.roomtemp);
+                console.log("obj roomtemp: ", obj.roomtemp);
+                chart.data.datasets[1].data.push(obj.heatertemp);
+                console.log("obj heater: ", obj.heatertemp);
+            });
+            chart.update();
+            setTimeout(updateValues, 1000, chart);
+        }
+    </script>
+
+
 
     foo {{ bar }}
 

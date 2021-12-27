@@ -32,8 +32,8 @@ def get_latest_data():
     cursor = db.execute("select * from temperatures where id = (select max(id) from temperatures)")
     for row in cursor:
         last_data.update({"time": row[1]})
-        last_data.update({"room-temp": row[2]})
-        last_data.update({"heater-temp": row[3]})
+        last_data.update({"roomtemp": row[2]})
+        last_data.update({"heatertemp": row[3]})
     db.close()
     return json.dumps(last_data)
 
