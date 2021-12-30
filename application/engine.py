@@ -30,7 +30,7 @@ class Engine:
         # setting pid controller
         # Cohen-Coon method
         # https://link.springer.com/article/10.1007/s42452-019-0929-y
-        pid = PID(20, 0.0005, 20, set_point=room1.expected_temp)
+        pid = PID(3.4, 0.6, 6.75, set_point=room1.expected_temp)
 
         # setting pid limits
         pid.out_min, pid.out_max = self.power_min, self.power_max
@@ -41,7 +41,7 @@ class Engine:
             try:
                 if not q.empty():
                     new_temp = q.get()
-                    pid.setpoint = new_temp
+                    pid.set_point = new_temp
                     room1.expected_temp = new_temp
                     print("set new temp to: ", new_temp)
             except ValueError:
@@ -63,11 +63,11 @@ class Engine:
             time.sleep(self.dt - ((time.time() - start_time) % self.dt))
 
     def time_prediction(self, room, queue):
-        speed_increase = 10
+        speed_increase = 1
         # increase dt to speed up the process
         self.dt *= speed_increase
         # set controller
-        pid = PID(20, 0.0005, 20, set_point=room.expected_temp)
+        pid = PID(3.4, 0.6, 6.75, set_point=room.expected_temp)
         # set limits
         pid.out_min, pid.out_max = self.power_min, self.power_max
         # counter to estimate time
@@ -95,16 +95,8 @@ class Engine:
             powers.append(power)
             # TODO: uncomment this:
             # check if reached set temperature
-            # if round(room.room_temp, 1) == room.expected_temp:
-            #     break
-
-            # TODO: remove this:
-            if i == 20000:
-                pid.set_point = 38
-                room.expected_temp = 38
-            if i == 40000:
+            if round(room.room_temp) == room.expected_temp:
                 break
-            # END
 
         # calculate amount of iterations needed * given dt (as given dt is 1 second)
         ret_value = (i * self.dt / speed_increase)
@@ -125,42 +117,42 @@ class Engine:
 
     def heater_temp_calculate(self, watts, room_temp):
 
-        if self.heater_temp_now >= 62:
+        if self.heater_temp_now >= 70:
             watts = 0
 
         # copper heat capacity: 0.385 kJ/kg, water heat capacity: 4.2 kJ/kg
         cp = 0.9 * 4.2 + 0.1 * 0.385
 
-        # mass of heater: 20 kg
-        mass = 20
+        # mass of heater: 15 kg
+        mass = 15
 
         # 1 watt = 1 J/s
-        # watt * s / 1000 = kJoules
+        # 1 kJ = 1W/s / 1000
         heat = watts * self.dt / 1000
 
         # Q = m * cp * dT -> dT = Q / m * cp
         # C = (kJ / s) / (kg * Kj / kg / C)
         delta_temp = heat / (mass * cp)
 
-        # surface of heater: 0.57m*0.42m*2 + 0.19m*0.42m*2 + 0.19m*0.57m*2
-        surface = 0.57 * 0.42 * 2 + 0.19 * 0.42 * 2 + 0.19 * 0.57 * 2  # m^3
+        # surface of heater: 0.7m*0.6m*2 + 0.3m*0.6m*2 + 0.3m*0.7m*2
+        surface = 0.7 * 0.6 * 2 + 0.3 * 0.6 * 2 + 0.3 * 0.7 * 2  # m^3
 
         # https://www.engineeringtoolbox.com/overall-heat-transfer-coefficient-d_434.html
-        coefficient = 12.5  # W/m^3K = J/s / m^3K
+        coefficient = 16  # W/m^3K = J/s / m^3K
 
         # temperature difference
-        temp_difference = room_temp - self.heater_temp_now  # C
+        temp_difference = self.heater_temp_now - room_temp  # C
         # print("temp difference: ", temp_difference)
 
         # Newton's law of cooling
         # Q = h * A * dT
-        transfer_out = coefficient * surface * temp_difference  # W
+        transfer_out = coefficient * surface * temp_difference / 1000  # kW
 
-        heat_given = transfer_out * self.dt / 1000  # kJ
+        heat_given = transfer_out * self.dt  # kJ
 
         temperature_given = heat_given / (mass * cp)  # C
 
-        self.heater_temp_now += delta_temp + temperature_given
+        self.heater_temp_now += delta_temp - temperature_given
 
         if heat_given < 0:
             heat_given = abs(heat_given)
@@ -171,9 +163,9 @@ class Room:
     def __init__(self, room_temp=19, expected_temp=32):
         self.room_temp = room_temp
         self.expected_temp = expected_temp
-        self.room_width = 3
-        self.room_height = 3
-        self.room_length = 3
+        self.room_width = 2
+        self.room_height = 2
+        self.room_length = 2
         self.room_surface = self.room_length * self.room_width
         self.room_volume = self.room_length * self.room_width * self.room_height
 
@@ -185,14 +177,14 @@ class Room:
         #   cp of air = 1.012 kJ/kg
         #   B = 0.0005
 
-        mass = 100  # kg
+        mass = 40  # kg
         cp = 1.012 * 0.9 + 1.7 * 0.1  # kJ / kg
 
         # Q = m * cp * dT  ===>  dT = Q / m * cp
         qin = heat / (mass * cp)
 
         # heat loss coefficient
-        b = 0.0005
+        b = 0.0001
 
         delta_temp = ((qin - b * pow(self.room_temp, 0.5)) * dt) / self.room_volume
         self.room_temp += delta_temp
