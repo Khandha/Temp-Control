@@ -44,23 +44,26 @@ class Engine:
                     pid.set_point = new_temp
                     room1.expected_temp = new_temp
                     print("set new temp to: ", new_temp)
+                # calculate power to heater
+                power = pid(room1.room_temp)
+
+                # calculate heater temperature and heat given out
+                heater_temp, heat = self.heater_temp_calculate(power, room1.room_temp)
+
+                # returns room temperature based on differential equation
+                room_temp = room1(heat, self.dt)
+
+                # saves state to database
+                p1 = Process(target=db_push_temp, args=(room_temp, heater_temp))
+                p1.start()
+
+                time.sleep(self.dt - ((time.time() - start_time) % self.dt))
             except ValueError:
                 print("Queue error - retrying in next run")
+            except KeyboardInterrupt:
+                print("Program interrupted with keyboard stop signal - P2")
+                quit()
 
-            # calculate power to heater
-            power = pid(room1.room_temp)
-
-            # calculate heater temperature and heat given out
-            heater_temp, heat = self.heater_temp_calculate(power, room1.room_temp)
-
-            # returns room temperature based on differential equation
-            room_temp = room1(heat, self.dt)
-
-            # saves state to database
-            p1 = Process(target=db_push_temp, args=(room_temp, heater_temp))
-            p1.start()
-
-            time.sleep(self.dt - ((time.time() - start_time) % self.dt))
 
     def time_prediction(self, room, queue):
         speed_increase = 1

@@ -13,7 +13,7 @@ page = Blueprint("page", __name__, template_folder="templates")
 
 @page.route("/")
 def index():
-    return render_template("index.html", bar=get_data())
+    return render_template("index.html", bar=estimate())
 
 
 # to check: curl -X POST http://127.0.0.1:5000/settemp?temp=17
@@ -42,12 +42,12 @@ def get_data():
 
 # this returns some more data in json
 # request to be made with /plot/more?count=<number, like 123> for example
-# http://127.0.0.1:5000/plot/more?count=11
+# http://127.0.0.1:5000/data/more?count=11
 @page.route("/data/more", methods=["GET"])
 def more():
     try:
         how_much = request.args.get("count")
-        how_much = helpers.limit(how_much, 1, 50)
+        how_much = helpers.limit(int(how_much), 1, 50)
         return get_some_data(how_much)
     except NameError:
         print("fetching data failed")
