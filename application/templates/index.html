@@ -53,25 +53,43 @@
         };
 
 
-        updateValues(new Chart(
+        runner(new Chart(
             document.getElementById('temp_chart'),
             config
         ));
 
+        function runner(chart) {
+            $.getJSON("/data/more?count=45").done(function (current_temps) {
+                chart = chart.config._config;
+                let x = current_temps.filter((element, index) => {
+                  return index % 3 === 0;
+                })
+                x.shift();
+                x.slice().reverse().forEach(current_temp => {
+                    if(x[x.length-1] === current_temp) return;
+                    console.log(current_temp)
+                    let obj = current_temp;
+                    chart.data.labels.push(obj.time);
+                    chart.data.datasets[0].data.push(obj.roomtemp);
+                    chart.data.datasets[1].data.push(obj.heatertemp);
+                })
+            });
+            updateValues(chart)
+        }
+
         function updateValues(chart) {
-            console.log(chart)
             $.getJSON("/data").done(function (current_temp) {
                 chart = chart.config._config;
                 let obj = current_temp;
                 chart.data.labels.push(obj.time);
-                console.log("obj time: ", obj.time);
+                chart.data.labels.shift();
                 chart.data.datasets[0].data.push(obj.roomtemp);
-                console.log("obj roomtemp: ", obj.roomtemp);
+                chart.data.datasets[0].data.shift();
                 chart.data.datasets[1].data.push(obj.heatertemp);
-                console.log("obj heater: ", obj.heatertemp);
+                chart.data.datasets[1].data.shift();
             });
             chart.update();
-            setTimeout(updateValues, 1000, chart);
+            setTimeout(updateValues, 3000, chart);
         }
     </script>
 
