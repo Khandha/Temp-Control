@@ -2,29 +2,22 @@
 
 ## Plan
 
-###### 1. Decyzje ad technologii
-- backend:
-    - done
-- frontend:
-    - charts.js
-    - ???
-
-###### 2. Struktura projektu
-- struktura folderów / plików
-    - TBC
-###### 3. Implementacja
+###### 1. Implementacja
 - GUI
-- silnik obliczeniowy
-- równoległy model symulacyjny
-###### 4. Szybki QA
+- x silnik obliczeniowy
+- x równoległy model symulacyjny
+###### 2. Szybki QA
 - manual
-###### 5. Dokumentacja
+###### 3. Dokumentacja
 
 ## Wymagania
 - mobile first
-- obsługa wyjątków
+- x obsługa wyjątków
 - dokumentacja 3*A4 
 - graf systemu sterowania
 - graf dla mikrokontrolera?
 - diagram UAR
-- wybrany algorytm sterowania: PID
+- x wybrany algorytm sterowania: PID
+
+Instalacja i run:
+```cd server/ && pip install -r requirements.txt && python main.py```

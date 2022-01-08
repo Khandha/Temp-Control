@@ -1,7 +1,8 @@
 from multiprocessing import Process, Queue
 from flask import Flask
-from application.routes import *
-from engine import Room, Engine
+from routes import *
+from engine import Engine
+from room import Room
 
 app = Flask(__name__)
 

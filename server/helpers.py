@@ -7,8 +7,7 @@ from sqlite3 import Error
 
 
 def db_connection():
-    db_os_name = Path("C:\\projectspy\\Temp-Control\\application\\db\\t_history.db").resolve()  # TODO: resolve this
-    # print(db_os_name)
+    db_os_name = Path("db/t_history.db").resolve()
     try:
         db_handle = sqlite3.connect(db_os_name)
         if not os.path.isfile(db_os_name):
@@ -31,7 +30,7 @@ def get_latest_data():
     last_data = {}
     cursor = db.execute("select * from temperatures where id = (select max(id) from temperatures)")
     for row in cursor:
-        time_out = str(datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S').time())
+        time_out: str = str(datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S').time())
         last_data.update({"time": time_out})
         last_data.update({"roomtemp": row[2]})
         last_data.update({"heatertemp": row[3]})
