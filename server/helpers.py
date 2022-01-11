@@ -11,17 +11,18 @@ def db_connection():
     try:
         db_handle = sqlite3.connect(db_os_name)
         if not os.path.isfile(db_os_name):
-            db_handle.execute('''create table temperatures(time real, room_temp real, heater_temp real)''')
+            db_handle.execute('''create table temperatures(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, time text, room_temp real, heater_temp real, set_point real)''')
         return db_handle
     except Error as e:
         print(e)  # TODO
 
 
-def db_push_temp(room_temp, heater_temp):
+def db_push_temp(room_temp, heater_temp, set_point):
     db = db_connection()
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    db.execute("insert into temperatures (time, room_temp, heater_temp) values (?, ?, ?)",
-               (current_time, room_temp, heater_temp))
+    db.execute("insert into temperatures (time, room_temp, heater_temp, set_point) values (?, ?, ?, ?)",
+               (current_time, room_temp, heater_temp, set_point))
     db.commit()
 
 
@@ -34,6 +35,7 @@ def get_latest_data():
         last_data.update({"time": time_out})
         last_data.update({"roomtemp": row[2]})
         last_data.update({"heatertemp": row[3]})
+        last_data.update({"set_point": row[4]})
     db.close()
     return json.dumps(last_data)
 
@@ -51,6 +53,7 @@ def get_some_data(count):
         data.update({"time": time_out})
         data.update({"roomtemp": row[2]})
         data.update({"heatertemp": row[3]})
+        data.update({"set_point": row[4]})
         some_data.append(data)
     db.commit()
     db.close()

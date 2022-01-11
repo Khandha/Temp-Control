@@ -23,7 +23,7 @@ class Room:
         qin = heat / (mass * cp)
 
         # heat loss coefficient
-        b = 0.0001
+        b = 0.001
 
         delta_temp = ((qin - b * pow(self.room_temp, 0.5)) * dt) / self.room_volume
         self.room_temp += delta_temp
