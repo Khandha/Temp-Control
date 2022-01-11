@@ -5,6 +5,10 @@ from PID import PID
 
 from helpers import db_push_temp
 from room import Room
+# testing purposes only
+# not a requirement
+from bokeh.plotting import figure, show
+from bokeh.io import output_file
 
 
 class Engine:
@@ -18,11 +22,12 @@ class Engine:
     def worker(self, q, room1: 'Room'):
         # simulation starting
         print("Worker is running")
-
+        # multiply self.dt to get faster results
+        
         # setting pid controller
         # Cohen-Coon method
         # https://link.springer.com/article/10.1007/s42452-019-0929-y
-        pid = PID(3.4, 0.6, 6.75, set_point=room1.expected_temp)
+        pid = PID(80, 0.2, 10, set_point=room1.expected_temp)
 
         # setting pid limits
         pid.out_min, pid.out_max = self.power_min, self.power_max
@@ -37,7 +42,7 @@ class Engine:
                     room1.expected_temp = new_temp
                     print("set new temp to: ", new_temp)
                 # calculate power to heater
-                power = pid(room1.room_temp)
+                power = pid(room1.room_temp, self.dt)
 
                 # calculate heater temperature and heat given out
                 heater_temp, heat = self.heater_temp_calculate(power, room1.room_temp)
@@ -58,7 +63,7 @@ class Engine:
 
     def time_prediction(self, room, queue):
         # set controller
-        pid = PID(3.4, 0.6, 6.75, set_point=room.expected_temp)
+        pid = PID(80, 0.2, 10, set_point=room.expected_temp)
         # set limits
         pid.out_min, pid.out_max = self.power_min, self.power_max
         # counter to estimate time
@@ -76,7 +81,7 @@ class Engine:
             room_temp = room(heat, self.dt)
 
             # check if reached set temperature
-            if round(room.room_temp) == room.expected_temp:
+            if round(room_temp) == room.expected_temp:
                 break
 
         # calculate amount of iterations needed * given dt (as given dt is 1 second)

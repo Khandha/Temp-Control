@@ -14,7 +14,7 @@ class Room:
         #   mass of furniture = 100 kg
         #   cp of wood = 1.7 kJ/kg
         #   cp of air = 1.012 kJ/kg
-        #   B = 0.0005
+        #   B = 0.0001
 
         mass = 40  # kg
         cp = 1.012 * 0.9 + 1.7 * 0.1  # kJ / kg
