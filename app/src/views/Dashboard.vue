@@ -1,5 +1,5 @@
 <template>
-  <main class="container container--main">
+  <main class="container container--main container--main-dashboard">
     <header>
       <AppHeading :alternative="true">TempControl</AppHeading>
     </header>
@@ -109,6 +109,11 @@ export default {
 
   &--dashboard {
     height: 65%;
+
+    @media screen and (min-width: 946px) {
+      align-self: center;
+      grid-area: 1 / 1 / 3 / 2;
+    }
   }
 }
 

@@ -65,15 +65,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  width: 378px;
+  width: 347px;
   aspect-ratio: 9/19.5;
+  flex-direction: column;
   background-color: $gray300;
   position: relative;
   overflow: hidden;
   border-radius: 18px;
-}
 
+  @media screen and (min-width: 946px) {
+    width: 90%;
+    aspect-ratio: 16/10;
+  }
+}
 .container {
   display: flex;
   flex-direction: column;
@@ -81,7 +85,13 @@ body {
 
   &--main {
     width: 100%;
-    padding: 0 10px;
+    padding: 6px 8px 88px;
+
+    @media screen and (min-width: 946px) {
+      display: grid;
+      grid-template-columns: 35% 65%;
+      grid-template-rows: 82px auto;
+    }
   }
 }
 </style>

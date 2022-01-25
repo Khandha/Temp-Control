@@ -1,8 +1,7 @@
 <template>
   <main class="container container--main" ref="viewport">
-    <h1>Stats here</h1>
-    <AppBaseWrapper :solid="true">
-      <apexchart type="line" :options="options" :series="series" />
+    <AppBaseWrapper :solid="true" class="container--chart">
+      <apexchart type="line" :options="options" :series="series" ref="chart"/>
     </AppBaseWrapper>
   </main>
 </template>
@@ -18,10 +17,18 @@ export default {
     return {
       options: {
         chart: {
-          id: "vuechart-example",
+          id: "chart",
           width: "100%",
+          height: "100%",
           toolbar: {
             show: false,
+          },
+          animations: {
+            enabled: true,
+            easing: 'linear',
+            dynamicAnimation: {
+              speed: 1000
+            }
           },
         },
         xaxis: {
@@ -52,37 +59,42 @@ export default {
       const { data } = await axios.get(
         "http://127.0.0.1:5000/data/more?count=" + plotSize
       );
-      console.log(data);
+
       data.forEach(({ time, roomtemp, heatertemp }, index) => {
         const roomTemp = roomtemp.toFixed(2);
         const heaterTemp = heatertemp.toFixed(2);
-        setTimeout(() => {
-          const seriesSize = this.series[0].data.length;
+        setInterval(() => {
+          //const seriesSize = this.series[0].data.length;
 
-          if (seriesSize === 20) {
-            this.series[0].data.splice(0, 1);
-            this.series[1].data.splice(0, 1);
-            this.options.xaxis.categories.splice(0, 1);
-          }
+          // this.series[0].data.push(roomTemp);
+          // this.series[1].data.push(heaterTemp);
+          //this.options.xaxis.categories.push(this.parseTime(time));
 
-          this.series[0].data.push(roomTemp);
-          this.series[1].data.push(heaterTemp);
-          this.options.xaxis.categories.push(this.parseTime(time));
-
-          console.log(index, seriesSize, data.length);
-          data.splice(0, 1);
+          this.$refs.chart.updateSeries([{
+            data: [{
+              x: this.parseTime(time),
+              y: roomTemp
+            }, {
+              x: this.parseTime(time),
+              y: heaterTemp
+            }]
+          }])
         }, 1000 * index++);
       });
     },
   },
   created() {
-    this.getTemperature(50);
+    setInterval(() => {
+      this.getTemperature(50);
+    }, 50000);
   },
 };
 </script>
 
-<style scoped>
-h1 {
-  font-size: 180%;
+<style lang="scss" scoped>
+.container--chart {
+  width: 75%;
+  grid-area: 1 / 1 / 3 / 3;
+  justify-self: center;
 }
 </style>

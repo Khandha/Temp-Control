@@ -105,7 +105,7 @@ class Engine:
 
         # Testing purposes only
         # START:
-        output_file("C:/projectspy/Temp-Control/graph.html", title="estimated quick")
+        output_file("./graph.html", title="estimated quick")
         fig = figure(title="estimated", plot_height=750, plot_width=1350,
                      x_axis_label="Time[s]", y_axis_label="temps[C]")
         fig.line(times, room_temps, color="blue", legend_label="room temp[C]", line_width=3)
