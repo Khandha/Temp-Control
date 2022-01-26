@@ -1,41 +1,36 @@
 <template>
-  <main class="container container--main container--main-dashboard">
+  <main class="container container--main">
     <header>
       <AppHeading :alternative="true">TempControl</AppHeading>
     </header>
-    <AppBaseWrapper
-      v-if="!isFetching"
-      :solid="true"
-      class="container--dashboard"
-    >
-      <TemperatureControl
-        :initial-temperature="temperature.fetched"
+    <TemperatureControl
+        v-if="!isFetching"
+        :initial-temperature="temperature.setPoint"
         @temp-change="handleTemperatureChange"
-      />
-      <div class="summary">
-        <div class="summary__item">
-          <AppParagraph class="summary__label"
-            >Current temperature:</AppParagraph
-          >
-          <span class="summary__value"
-            >{{ temperature.fetched ? temperature.fetched : "- " }}°C</span
-          >
-        </div>
-        <div class="summary__item">
-          <AppParagraph class="summary__label">Given temperature:</AppParagraph>
-          <span class="summary__value">{{
-            temperature.given ? temperature.given + "°C" : "-"
-          }}</span>
-        </div>
-        <div class="summary__item">
-          <AppParagraph class="summary__label"
-            >Estimated heat time:</AppParagraph
-          >
-          <span class="summary__value">{{
-            estimatedTime ? estimatedTime : "-"
-          }}</span>
-        </div>
-      </div>
+    />
+    <AppBaseWrapper
+      :solid="true"
+    >
+      <ul class="summary">
+        <li class="summary__item">
+          <AppParagraph class="summary__label">
+            Current temperature:
+          </AppParagraph>
+          <AppSummaryValue :value="temperature.current" />
+        </li>
+        <li class="summary__item">
+          <AppParagraph class="summary__label">
+            Given temperature:
+          </AppParagraph>
+          <AppSummaryValue :value="temperature.given" />
+        </li>
+        <li class="summary__item">
+          <AppParagraph class="summary__label">
+            Estimated time:
+          </AppParagraph>
+          <AppSummaryValue :value="estimatedTime" />
+        </li>
+      </ul>
     </AppBaseWrapper>
   </main>
 </template>
@@ -46,51 +41,55 @@ import AppBaseWrapper from "@/components/atoms/AppBaseWrapper";
 import TemperatureControl from "@/components/organisms/TemperatureControl";
 import AppParagraph from "@/components/atoms/AppParagraph";
 import axios from "axios";
+import AppSummaryValue from "@/components/atoms/AppSummaryValue";
 
 export default {
   name: "Dashboard",
-  components: { AppParagraph, TemperatureControl, AppBaseWrapper, AppHeading },
+  components: {AppSummaryValue, AppParagraph, TemperatureControl, AppBaseWrapper, AppHeading },
   data() {
     return {
       isFetching: true,
       temperature: {
-        fetched: null,
+        current: null,
         given: null,
+        setPoint: null,
       },
       estimatedTime: null,
     };
   },
   methods: {
-    setTemperature: (temperature) =>
+    setTemperature: temperature =>
       axios.post("http://127.0.0.1:5000/settemp?temp=" + temperature),
     getEstimatedTime: async (current, given) => {
-      const {
-        data: { "time-estimate": estimatedTime },
-      } = await axios.get(
-        `http://127.0.0.1:5000/estimate?current_temp=${current}&set_temp=${given}`
-      );
+      const { data: {
+        "time-estimate": estimatedTime
+      } } = await axios.get(
+          `http://127.0.0.1:5000/estimate?current_temp=${current}&set_temp=${given}`
+      )
       const timeData = estimatedTime.slice(0, -3).split(":");
-      if (timeData) {
-        return `${timeData[0]}h ${timeData[1]}m`;
-      }
+      return `${timeData[0]}h ${timeData[1]}m`;
     },
-    handleTemperatureChange(payload) {
+    async handleTemperatureChange(payload) {
       this.temperature.given = payload;
-      this.setTemperature(payload);
-      this.getEstimatedTime(
-        this.temperature.fetched,
+
+      await this.setTemperature(payload);
+
+      this.estimatedTime = await this.getEstimatedTime(
+        this.temperature.current,
         this.temperature.given
-      ).then((estimatedTime) => (this.estimatedTime = estimatedTime));
+      );
     },
   },
-  async mounted() {
-    const {
-      data: { roomtemp: roomTemperature },
-    } = await axios.get("http://127.0.0.1:5000/data");
-    if (roomTemperature) {
+  mounted() {
+    axios.get("http://127.0.0.1:5000/data").then(({ data }) => {
+      const {
+        set_point: setPoint,
+        roomtemp: roomTemperature
+      } = data;
       this.isFetching = !this.isFetching;
-      this.temperature.fetched = Math.floor(roomTemperature);
-    }
+      this.temperature.setPoint = Math.floor(setPoint);
+      this.temperature.current = Math.floor(roomTemperature);
+    });
   },
 };
 </script>
@@ -98,28 +97,15 @@ export default {
 <style lang="scss" scoped>
 @import "../assets/variables";
 
-.container {
-  &--main {
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    padding: 6px 8px 88px;
-    justify-content: space-evenly;
-  }
-
-  &--dashboard {
-    height: 65%;
-
-    @media screen and (min-width: 946px) {
-      align-self: center;
-      grid-area: 1 / 1 / 3 / 2;
-    }
-  }
+.container--main {
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 6px 8px 88px;
+  justify-content: center;
 }
 
 .summary {
-  margin-top: -25%;
-
   &__item {
     display: flex;
     justify-content: space-between;
@@ -142,7 +128,7 @@ export default {
 }
 
 header {
-  height: 15%;
+  padding: 30px 0;
 }
 h1 {
   font-size: 180%;

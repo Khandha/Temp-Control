@@ -7,7 +7,7 @@
         class="temperature-control__input"
         disabled
       />
-      <span class="temperature-control__suffix">°C</span>
+      <span class="temperature-control__suffix">&deg;C</span>
     </div>
     <div class="temperature-control__controls">
       <button @click="changeTemperature(+1)"></button>
@@ -56,14 +56,15 @@ export default {
 @import "../../assets/_variables.scss";
 
 .temperature-control {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: relative;
-  width: 100%;
-  height: 60%;
+  height: 35%;
+
   margin: 0 auto;
-  top: -25%;
+  top: 20px;
+
+  @media screen and (min-width: 1200px) {
+    height: 45%;
+  }
 
   &__plate,
   &__background {
@@ -75,12 +76,15 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+
     height: 100%;
-    background: $blue;
-    border: 16px solid $gray500;
+    position: relative;
     z-index: 0;
+    margin: 0 auto;
+
+    background: $blue;
+    border: 8px solid $gray500;
     box-shadow: inset 0 10px 15px 0 $blackA, 0 5px 5px hsla(0, 0%, 0%, 0.05);
-    position: absolute;
 
     &::after {
       content: "";

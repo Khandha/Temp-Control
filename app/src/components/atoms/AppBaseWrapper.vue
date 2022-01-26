@@ -1,7 +1,7 @@
 <template>
   <component :is="tag" :class="classList">
-    <AppHeading v-if="heading" :alternative="true" :size="headingSize">
-      {{ heading }}
+    <AppHeading v-if="headingSize" :alternative="true" :size="headingSize">
+      <slot name="heading"></slot>
     </AppHeading>
     <slot></slot>
   </component>
@@ -13,15 +13,10 @@ export default {
   name: "AppBaseWrapper",
   components: { AppHeading },
   props: {
-    heading: {
-      type: String,
-      require: false,
-      default: null,
-    },
     headingSize: {
       type: Number,
       require: false,
-      default: 1,
+      default: null,
     },
     solid: {
       type: Boolean,
@@ -31,7 +26,7 @@ export default {
   },
   computed: {
     tag() {
-      return this.heading ? "section" : "div";
+      return this.headingSize ? "section" : "div";
     },
     classList() {
       return [

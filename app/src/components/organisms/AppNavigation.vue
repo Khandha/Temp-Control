@@ -37,9 +37,9 @@ export default {
         },
         {
           id: 2,
-          label: "Settings",
-          icon: "settings",
-          routePath: "/settings",
+          label: "History",
+          icon: "clock",
+          routePath: "/history",
         },
       ],
     };

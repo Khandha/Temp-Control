@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Dashboard from "@/views/Dashboard";
 import Stats from "@/views/Stats";
-import Settings from "@/views/Settings";
+import History from "@/views/History";
 
 const routes = [
   {
@@ -15,9 +15,9 @@ const routes = [
     component: Stats,
   },
   {
-    path: "/settings",
-    name: "Settings",
-    component: Settings,
+    path: "/history",
+    name: "History",
+    component: History,
   },
 ];
 

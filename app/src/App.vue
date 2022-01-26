@@ -1,18 +1,14 @@
 <template>
-  <AppNavigation />
-  <router-view :key="$route.path"></router-view>
+  <div class="content">
+    <AppNavigation />
+    <router-view :key="$route.fullPath"></router-view>
+  </div>
 </template>
 
 <script>
-import axios from "axios";
 import AppNavigation from "@/components/organisms/AppNavigation";
 export default {
   components: { AppNavigation },
-  mounted() {
-    axios
-      .post("http://127.0.0.1:5000/settemp?temp=17")
-      .then((res) => console.log(res.status));
-  },
 };
 </script>
 
@@ -22,6 +18,21 @@ export default {
 
 .hidden {
   display: none;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-100px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+main {
+  animation: pop-in 0.4s cubic-bezier(.61,.35,.46,.91);
 }
 
 *,
@@ -62,20 +73,14 @@ body {
 }
 
 #app {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 347px;
-  aspect-ratio: 9/19.5;
-  flex-direction: column;
-  background-color: $gray300;
-  position: relative;
-  overflow: hidden;
-  border-radius: 18px;
+  width: 100%;
+  height: 100%;
 
-  @media screen and (min-width: 946px) {
-    width: 90%;
-    aspect-ratio: 16/10;
+  padding: 5vw;
+  margin: 0 auto;
+
+  @media screen and (min-width: 1200px) {
+    width: 1200px
   }
 }
 .container {
@@ -86,12 +91,31 @@ body {
   &--main {
     width: 100%;
     padding: 6px 8px 88px;
+  }
+}
 
-    @media screen and (min-width: 946px) {
-      display: grid;
-      grid-template-columns: 35% 65%;
-      grid-template-rows: 82px auto;
-    }
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  height: 100%;
+  aspect-ratio: 9/19.5;
+
+  position: relative;
+  margin: 0 auto;
+
+  border-radius: 18px;
+  background-color: $gray300;
+
+  overflow: hidden;
+
+  @media screen and (min-width: 1200px) {
+    width: 100%;
+    height: auto;
+
+    aspect-ratio: 16/10;
   }
 }
 </style>

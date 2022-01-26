@@ -1,5 +1,6 @@
 <template>
-  <main class="container container--main" ref="viewport">
+  <main class="container container--main">
+    <AppParagraph>This chart presents current heater temperature compared to the temperature of the room in real time.</AppParagraph>
     <AppBaseWrapper :solid="true" class="container--chart">
       <apexchart type="line" :options="options" :series="series" ref="chart"/>
     </AppBaseWrapper>
@@ -9,13 +10,14 @@
 <script>
 import AppBaseWrapper from "@/components/atoms/AppBaseWrapper";
 import axios from "axios";
+import AppParagraph from "@/components/atoms/AppParagraph";
 var roomTempData = [];
 var heaterTempData = []
 var TICKCOUNT = 15
 
 export default {
   name: "Stats",
-  components: { AppBaseWrapper },
+  components: {AppParagraph, AppBaseWrapper },
   data() {
     return {
       options: {
@@ -72,21 +74,29 @@ export default {
   },
   methods: {
     parseTime: (time) => new Date("2019-01-19T" + time).getTime(),
-    async fill() {
+    async init() {
       let { data } = await axios.get(
         "http://127.0.0.1:5000/data/more?count=" + TICKCOUNT * 2
       );
       data = data.slice().reverse();
       for(let i = 0; i < TICKCOUNT; i++) {
-        roomTempData.push({x: this.parseTime(data[i].time), y: data[i].roomtemp.toFixed(2)})
-        heaterTempData.push({x: this.parseTime(data[i].time), y: data[i].heatertemp.toFixed(2)})
+        roomTempData.push({
+          x: this.parseTime(data[i].time),
+          y: data[i].roomtemp.toFixed(2)
+        });
+        heaterTempData.push({
+          x: this.parseTime(data[i].time),
+          y: data[i].heatertemp.toFixed(2)
+        });
       }
-      // console.log(roomTempData);
-      this.$refs.chart.updateSeries([{
-        data: roomTempData
-        }, {
-          data: heaterTempData
-        }], 1000);
+
+      this.$refs.chart.updateSeries(
+        [
+          { data: roomTempData },
+          { data: heaterTempData }
+        ],
+        1000
+      );
 
       await this.getTemperature(TICKCOUNT);
 
@@ -102,51 +112,73 @@ export default {
     async clean() {
       roomTempData.splice(0, roomTempData.length - TICKCOUNT + 2)
       heaterTempData.splice(0, heaterTempData.length - TICKCOUNT + 2)
-      this.$refs.chart.updateSeries([{
-          data: roomTempData
-        }, {
-          data: heaterTempData
-        }], 1000);
+      this.$refs.chart.updateSeries(
+          [
+            { data: roomTempData },
+            { data: heaterTempData }
+          ],
+          1000
+      );
       },
     async getTemperature(plotSize) {
       let { data } = await axios.get(
         "http://127.0.0.1:5000/data/more?count=" + plotSize
       );
       data = data.slice().reverse();
+
       data.forEach(({ time, roomtemp, heatertemp }, index) => {
         const roomTemp = roomtemp.toFixed(2);
         const heaterTemp = heatertemp.toFixed(2);
+
         setTimeout(() => {
           if (!roomTempData.some(e => e.x === this.parseTime(time))) {
-            roomTempData.push({x: this.parseTime(time), y: roomTemp});
-            heaterTempData.push({x: this.parseTime(time), y: heaterTemp});
+            roomTempData.push({
+              x: this.parseTime(time),
+              y: roomTemp
+            });
+            heaterTempData.push({
+              x: this.parseTime(time),
+              y: heaterTemp
+            });
+
             if (roomTempData.length > TICKCOUNT) {
               for (let i = 0; i < roomTempData.length - (TICKCOUNT + 2); i++) {
                 heaterTempData[i].y = 0;
                 roomTempData[i].y = 0;
               }
             }
-            this.$refs.chart.updateSeries([{
-              data: roomTempData
-            }, {
-              data: heaterTempData
-            }], 1000);
+            this.$refs.chart.updateSeries(
+                [
+                  { data: roomTempData },
+                  { data: heaterTempData }
+                ],
+                1000
+            );
             console.log(roomTemp, heaterTemp, time);
           }
         }, 1000 * index++);
       });
     },
   },
-  created() {
-    this.fill();
+  mounted() {
+    this.init();
   },
+  beforeUnmount() {
+    this.$router.go();
+  }
 };
 </script>
 
 <style lang="scss" scoped>
+p {
+  text-align: center;
+  padding: 15px 0;
+  width: 50%;
+  margin: 0 auto;
+}
+
 .container--chart {
-  width: 75%;
-  grid-area: 1 / 1 / 3 / 3;
-  justify-self: center;
+  width: 65%;
+  margin: 0 auto;
 }
 </style>
