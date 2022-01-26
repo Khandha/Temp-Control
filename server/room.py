@@ -8,23 +8,20 @@ class Room:
         self.room_surface = self.room_length * self.room_width
         self.room_volume = self.room_length * self.room_width * self.room_height
 
-    def __call__(self, heat, dt):
         # given:
-        #   mass of air = 0 kg
         #   mass of furniture = 100 kg
         #   cp of wood = 1.7 kJ/kg
         #   cp of air = 1.012 kJ/kg
         #   B = 0.0001
+        self.mass_of_air = 1.225 * self.room_volume  # kg
+        self.mass = 100 + self.mass_of_air  # kg
+        self.cp = 1.012 * 0.9 + 1.9 * 0.1  # kJ / kg
+        self.b = 0.0001
 
-        mass = 40  # kg
-        cp = 1.012 * 0.9 + 1.7 * 0.1  # kJ / kg
-
+    def __call__(self, heat, dt):
         # Q = m * cp * dT  ===>  dT = Q / m * cp
-        qin = heat / (mass * cp)
-
-        # heat loss coefficient
-        b = 0.001
-
-        delta_temp = ((qin - b * pow(self.room_temp, 0.5)) * dt) / self.room_volume
-        self.room_temp += delta_temp
+        delta_temp = heat / (self.mass * self.cp)
+        # zmiana temperatury - wzór 2).
+        # Q = h * A * delta temperatury
+        self.room_temp += delta_temp - self.room_temp * self.b
         return self.room_temp

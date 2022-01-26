@@ -9,6 +9,9 @@
 <script>
 import AppBaseWrapper from "@/components/atoms/AppBaseWrapper";
 import axios from "axios";
+var roomTempData = [];
+var heaterTempData = []
+var TICKCOUNT = 15
 
 export default {
   name: "Stats",
@@ -35,58 +38,107 @@ export default {
           type: "datetime",
           dateTimeUTC: true,
           categories: [],
+          range: TICKCOUNT * 1000,
           labels: {
             show: true,
             format: "HH:mm:ss",
           },
         },
+        yaxis: {
+          min: 10,
+          max: 45,
+          tickAmount: 20,
+          labels: {
+            formatter: function(val) {
+              return val.toFixed(0)
+            }
+          }
+        },
+        stroke: {
+          curve: "smooth"
+        },
       },
       series: [
         {
           name: "Room temperature",
-          data: [],
+          data: roomTempData.slice(),
         },
         {
           name: "Heater temperature",
-          data: [],
+          data: heaterTempData.slice(),
         },
       ],
     };
   },
   methods: {
     parseTime: (time) => new Date("2019-01-19T" + time).getTime(),
+    async fill() {
+      let { data } = await axios.get(
+        "http://127.0.0.1:5000/data/more?count=" + TICKCOUNT * 2
+      );
+      data = data.slice().reverse();
+      for(let i = 0; i < TICKCOUNT; i++) {
+        roomTempData.push({x: this.parseTime(data[i].time), y: data[i].roomtemp.toFixed(2)})
+        heaterTempData.push({x: this.parseTime(data[i].time), y: data[i].heatertemp.toFixed(2)})
+      }
+      // console.log(roomTempData);
+      this.$refs.chart.updateSeries([{
+        data: roomTempData
+        }, {
+          data: heaterTempData
+        }], 1000);
+
+      await this.getTemperature(TICKCOUNT);
+
+      setInterval(() => {
+        this.getTemperature(TICKCOUNT);
+      }, TICKCOUNT * 1000);
+
+      setInterval(function () {
+        this.clean()
+      }, 60000)
+
+    },
+    async clean() {
+      roomTempData.splice(0, roomTempData.length - TICKCOUNT + 2)
+      heaterTempData.splice(0, heaterTempData.length - TICKCOUNT + 2)
+      this.$refs.chart.updateSeries([{
+          data: roomTempData
+        }, {
+          data: heaterTempData
+        }], 1000);
+      },
     async getTemperature(plotSize) {
-      const { data } = await axios.get(
+      let { data } = await axios.get(
         "http://127.0.0.1:5000/data/more?count=" + plotSize
       );
-
+      data = data.slice().reverse();
       data.forEach(({ time, roomtemp, heatertemp }, index) => {
         const roomTemp = roomtemp.toFixed(2);
         const heaterTemp = heatertemp.toFixed(2);
-        setInterval(() => {
-          //const seriesSize = this.series[0].data.length;
-
-          // this.series[0].data.push(roomTemp);
-          // this.series[1].data.push(heaterTemp);
-          //this.options.xaxis.categories.push(this.parseTime(time));
-
-          this.$refs.chart.updateSeries([{
-            data: [{
-              x: this.parseTime(time),
-              y: roomTemp
+        setTimeout(() => {
+          if (!roomTempData.some(e => e.x === this.parseTime(time))) {
+            roomTempData.push({x: this.parseTime(time), y: roomTemp});
+            heaterTempData.push({x: this.parseTime(time), y: heaterTemp});
+            if (roomTempData.length > TICKCOUNT) {
+              for (let i = 0; i < roomTempData.length - (TICKCOUNT + 2); i++) {
+                heaterTempData[i].y = 0;
+                roomTempData[i].y = 0;
+              }
+            }
+            this.$refs.chart.updateSeries([{
+              data: roomTempData
             }, {
-              x: this.parseTime(time),
-              y: heaterTemp
-            }]
-          }])
+              data: heaterTempData
+            }], 1000);
+            console.log(roomTemp, heaterTemp, time);
+          }
         }, 1000 * index++);
       });
     },
   },
   created() {
-    setInterval(() => {
-      this.getTemperature(50);
-    }, 50000);
+    this.fill();
   },
 };
 </script>

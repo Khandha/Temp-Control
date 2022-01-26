@@ -21,3 +21,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt as interrupt:
         print("Program interrupted with keyboard stop signal")
         quit()
+# TODO: make reaction faster.

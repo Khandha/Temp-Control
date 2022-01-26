@@ -3,6 +3,7 @@ import os.path
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+import random
 from sqlite3 import Error
 
 
@@ -46,6 +47,65 @@ def get_some_data(count):
     cur = db.cursor()
 
     cur.execute("select * from temperatures order by id desc limit ?", [count])
+    some_data = []
+    for row in cur:
+        data = {}
+        time_out = str(datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S').time())
+        data.update({"time": time_out})
+        data.update({"roomtemp": row[2]})  # random.randint(17, 19)
+        data.update({"heatertemp": row[3]})
+        data.update({"set_point": row[4]})
+        some_data.append(data)
+    db.commit()
+    db.close()
+    return json.dumps(some_data)
+
+
+def get_three_hrs():
+    db = db_connection()
+    db.row_factory = sqlite3.Row
+    cur = db.cursor()
+
+    cur.execute("select * from temperatures where id % 54 == 0 order by id desc limit 200")
+    some_data = []
+    for row in cur:
+        data = {}
+        time_out = str(datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S').time())
+        data.update({"time": time_out})
+        data.update({"roomtemp": row[2]})
+        data.update({"heatertemp": row[3]})
+        data.update({"set_point": row[4]})
+        some_data.append(data)
+    db.commit()
+    db.close()
+    return json.dumps(some_data)
+
+
+def get_six_hrs():
+    db = db_connection()
+    db.row_factory = sqlite3.Row
+    cur = db.cursor()
+
+    cur.execute("select * from temperatures where id % 108 == 0 order by id desc limit 200")
+    some_data = []
+    for row in cur:
+        data = {}
+        time_out = str(datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S').time())
+        data.update({"time": time_out})
+        data.update({"roomtemp": row[2]})
+        data.update({"heatertemp": row[3]})
+        data.update({"set_point": row[4]})
+        some_data.append(data)
+    db.commit()
+    db.close()
+    return json.dumps(some_data)
+
+def get_twelve_hrs():
+    db = db_connection()
+    db.row_factory = sqlite3.Row
+    cur = db.cursor()
+
+    cur.execute("select * from temperatures where id % 216 == 0 order by id desc limit 200")
     some_data = []
     for row in cur:
         data = {}
