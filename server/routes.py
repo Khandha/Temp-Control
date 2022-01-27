@@ -102,12 +102,13 @@ def generate():
         new_queue = Queue()
         p = Process(target=Engine.time_prediction, args=(engine, room, new_queue, True))
         p.start()
-        p.join()
         ret_value = new_queue.get()
-        return {"time-estimate": str(datetime.timedelta(seconds=ret_value))}
+        p.join()
+        return {"html": ret_value}
     except Exception:
         print("exception on estimate call")
         return {"errorMessage": "estimating data failed"}
+
 
 # example call:
 # curl -X GET "http://127.0.0.1:5000/estimate?current_temp=19&set_temp=23"

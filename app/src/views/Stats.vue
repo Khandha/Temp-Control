@@ -47,9 +47,9 @@ export default {
           },
         },
         yaxis: {
-          min: 10,
-          max: 45,
-          tickAmount: 20,
+          min: 18,
+          max: 48,
+          tickAmount: 15,
           labels: {
             formatter: function(val) {
               return val.toFixed(0)

@@ -9,10 +9,13 @@ from room import Room
 # not a requirement
 from bokeh.plotting import figure, show
 from bokeh.io import output_file
+from bokeh.resources import CDN
+from bokeh.embed import file_html
 
 
 class Engine:
     dt = 1  # s
+
     # TODO: CHANGE TO MAKE FASTER.
 
     def __init__(self):
@@ -72,6 +75,7 @@ class Engine:
         room_temps = []
         times = []
         powers = []
+        ret_value = None
         while True:
             i += 1
 
@@ -99,16 +103,18 @@ class Engine:
                     fig.line(times, room_temps, color="blue", legend_label="room temp[C]", line_width=3)
                     fig.line(times, heater_temps, color="red", legend_label="heater temp[C]", line_width=2)
                     # fig.line(times, powers, color="green", legend_label="power[W]", line_width=1)
-                    show(fig)
+                    ret_value = file_html(fig, CDN, "my plot")
+                    # show(fig)
                     break
             else:
                 if round(room_temp) == room.expected_temp:
                     break
         # calculate amount of iterations needed * given dt (as given dt is 1 second)
-        ret_value = i * self.dt
+        if not chart:
+            ret_value = i * self.dt
         # send to router
         queue.put(ret_value)
-
+        return
 
     def heater_temp_calculate(self, watts, room_temp):
 

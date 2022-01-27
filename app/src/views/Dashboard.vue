@@ -84,7 +84,7 @@ export default {
     },
     getFrameUrl: async (current, given) => {
       const { data } = await axios.get(
-          `http://127.0.0.1:5000/chart_generate?current_temp=${current}&set_temp=${given}`
+          `http://127.0.0.1:5000/data/chart_generate?current_temp=${current}&set_temp=${given}`
       )
       console.log(data);
     },
