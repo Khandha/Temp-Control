@@ -29,16 +29,15 @@
             Estimated time:
           </AppParagraph>
           <div class="rzyg-totalny">
-            <AppButton :alternative="true" @click="toggleFrame" :disabled="!frameUrl">Estimation graph</AppButton>
+            <AppButton :alternative="true" @click="toggleFrame" :disabled="!frameContent">Estimation graph</AppButton>
             <AppSummaryValue :value="estimatedTime" />
           </div>
         </li>
       </ul>
     </AppBaseWrapper>
   </main>
-  <div v-if="isFrameVisible" class="frame-masakra-wrapper">
-    <iframe height="400" width="500" src="https://google.com"></iframe>
-    <AppButton @click="toggleFrame">Close graph</AppButton>
+  <div v-if="isFrameVisible" class="frame-masakra-wrapper" @click="toggleFrame">
+    <iframe height="500" width="900" :srcdoc="frameContent"></iframe>
   </div>
 </template>
 
@@ -64,7 +63,7 @@ export default {
       },
       estimatedTime: null,
       isFrameVisible: false,
-      frameUrl: null,
+      frameContent: "",
     };
   },
   methods: {
@@ -82,11 +81,11 @@ export default {
       const timeData = estimatedTime.slice(0, -3).split(":");
       return `${timeData[0]}h ${timeData[1]}m`;
     },
-    getFrameUrl: async (current, given) => {
-      const { data } = await axios.get(
+    async getFrameUrl(current, given) {
+      const { data: { html } } = await axios.get(
           `http://127.0.0.1:5000/data/chart_generate?current_temp=${current}&set_temp=${given}`
       )
-      console.log(data);
+      this.frameContent = html;
     },
     async handleTemperatureChange(payload) {
       this.temperature.given = payload;
@@ -173,16 +172,24 @@ h1 {
 
 .frame-masakra-wrapper {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 125%;
+  overflow: hidden;
   border: 10vw solid rgba(0,0,0,0.3);
   z-index: 99999;
+  padding-top: 45.5%;
 
   iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
     width: 100%;
     height: 100%;
-    border: none;
+    pointer-events: none;
+    transform-origin: top left;
   }
+
   button {
     margin-left: 25%;
     width: 50%;
