@@ -122,7 +122,7 @@ def estimate():
         room = Room(float(current_temp), float(set_temp))
         new_queue = Queue()
 
-        p = Process(target=Engine.time_prediction, args=(engine, room, new_queue))
+        p = Process(target=Engine.time_prediction, args=(engine, room, new_queue, False))
         p.start()
         p.join()
         ret_value = new_queue.get()

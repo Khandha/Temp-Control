@@ -78,6 +78,7 @@ def get_three_hrs():
         some_data.append(data)
     db.commit()
     db.close()
+    some_data.reverse()
     return json.dumps(some_data)
 
 
@@ -98,6 +99,7 @@ def get_six_hrs():
         some_data.append(data)
     db.commit()
     db.close()
+    some_data.reverse()
     return json.dumps(some_data)
 
 def get_twelve_hrs():
@@ -117,6 +119,7 @@ def get_twelve_hrs():
         some_data.append(data)
     db.commit()
     db.close()
+    some_data.reverse()
     return json.dumps(some_data)
 
 
