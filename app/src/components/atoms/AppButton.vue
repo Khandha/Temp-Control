@@ -37,12 +37,13 @@ export default {
   color: white;
   padding: 10px 16px;
   font-weight: bold;
-  box-shadow: 0 -8px 12px -16px hsla(0, 0%, 0%, 50%);
+  box-shadow: 0 -8px 12px -16px hsla(0, 0%, 0%, 60%);
+  cursor: pointer;
 
   &--alternative {
     padding: 8px 12px;
     font-size: 0.8rem;
-    background-color: black;
+    background-color:$gray50;
   }
 }
 </style>

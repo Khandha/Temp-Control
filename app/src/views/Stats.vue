@@ -17,7 +17,7 @@ var TICKCOUNT = 15
 
 export default {
   name: "Stats",
-  components: {AppParagraph, AppBaseWrapper },
+  components: { AppParagraph, AppBaseWrapper },
   data() {
     return {
       options: {
