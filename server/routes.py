@@ -1,11 +1,12 @@
 import queue
+import random
 
 from flask import request, Blueprint, current_app as app
 from flask_cors import cross_origin
 import helpers
 from engine import Engine
 from room import Room
-from helpers import get_latest_data, get_some_data, set_new_temperature
+from helpers import get_latest_data, get_some_data, set_new_temperature, get_six_hrs, get_three_hrs, get_twelve_hrs
 from multiprocessing import Queue, Process
 import datetime
 
@@ -54,9 +55,59 @@ def more():
         how_much = request.args.get("count")
         how_much = helpers.limit(int(how_much), 1, 50)
         return get_some_data(how_much)
+
     except NameError:
         print("fetching data failed")
         return {"errorMessage": "fetching data failed"}
+
+
+@page.route("/data/three", methods=["GET"])
+@cross_origin()
+def three():
+    try:
+        return get_three_hrs()
+    except NameError:
+        print("fetching data failed")
+        return {"errorMessage": "fetching data failed"}
+
+
+@page.route("/data/six", methods=["GET"])
+@cross_origin()
+def six():
+    try:
+        return get_six_hrs()
+    except NameError:
+        print("fetching data failed")
+        return {"errorMessage": "fetching data failed"}
+
+
+@page.route("/data/twelve", methods=["GET"])
+@cross_origin()
+def twelve():
+    try:
+        return get_twelve_hrs()
+    except NameError:
+        print("fetching data failed")
+        return {"errorMessage": "fetching data failed"}
+
+
+@page.route("/data/chart_generate", methods=["GET"])
+@cross_origin()
+def generate():
+    try:
+        current_temp = request.args.get("current_temp")
+        set_temp = request.args.get("set_temp")
+        engine = Engine()
+        room = Room(float(current_temp), float(set_temp))
+        new_queue = Queue()
+        p = Process(target=Engine.time_prediction, args=(engine, room, new_queue, True))
+        p.start()
+        ret_value = new_queue.get()
+        p.join()
+        return {"html": ret_value}
+    except Exception:
+        print("exception on estimate call")
+        return {"errorMessage": "estimating data failed"}
 
 
 # example call:
@@ -72,7 +123,7 @@ def estimate():
         room = Room(float(current_temp), float(set_temp))
         new_queue = Queue()
 
-        p = Process(target=Engine.time_prediction, args=(engine, room, new_queue))
+        p = Process(target=Engine.time_prediction, args=(engine, room, new_queue, False))
         p.start()
         p.join()
         ret_value = new_queue.get()

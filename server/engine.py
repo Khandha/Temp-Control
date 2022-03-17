@@ -9,10 +9,14 @@ from room import Room
 # not a requirement
 from bokeh.plotting import figure, show
 from bokeh.io import output_file
+from bokeh.resources import CDN
+from bokeh.embed import file_html
 
 
 class Engine:
     dt = 1  # s
+
+    # TODO: CHANGE TO MAKE FASTER.
 
     def __init__(self):
         self.power_max = 1600  # W
@@ -20,13 +24,12 @@ class Engine:
         self.heater_temp_now = 19  # C
 
     def worker(self, q, room1: 'Room'):
+        self.dt += 10
         # simulation starting
         print("Worker is running")
         # multiply self.dt to get faster results
 
         # setting pid controller
-        # Cohen-Coon method
-        # https://link.springer.com/article/10.1007/s42452-019-0929-y
         pid = PID(350, 0.012, 10000, set_point=room1.expected_temp)
 
         # setting pid limits
@@ -54,14 +57,14 @@ class Engine:
                 p1 = Process(target=db_push_temp, args=(room_temp, heater_temp, pid.set_point))
                 p1.start()
 
-                time.sleep(self.dt - ((time.time() - start_time) % self.dt))
+                time.sleep(1 - ((time.time() - start_time) % 1))
             except ValueError:
                 print("Queue error - retrying in next run")
             except KeyboardInterrupt:
                 print("Program interrupted with keyboard stop signal - P2")
                 quit()
 
-    def time_prediction(self, room, queue):
+    def time_prediction(self, room, queue, chart=False):
         # set controller
         pid = PID(350, 0.012, 10000, set_point=room.expected_temp)
         # set limits
@@ -72,6 +75,7 @@ class Engine:
         room_temps = []
         times = []
         powers = []
+        ret_value = None
         while True:
             i += 1
 
@@ -84,35 +88,33 @@ class Engine:
             # calculate room temperature based on heat given out
             room_temp = room(heat, self.dt)
 
-            # testing purposes only
-            # START:
-            room_temps.append(room_temp)
-            heater_temps.append(heater_temp)
-            times.append(i)
-            powers.append(power)
+            if chart:
+                room_temps.append(room_temp)
+                heater_temps.append(heater_temp)
+                times.append(i)
+                powers.append(power)
 
             # check if reached set temperature
-            if round(room_temp) == room.expected_temp:
-                break
-            # if i == 50000:
-            #     break
-
+            if chart:
+                if i == 50000:
+                    output_file("./graph.html", title="estimated quick")
+                    fig = figure(title="estimated", plot_height=750, plot_width=1350,
+                                 x_axis_label="Time[s]", y_axis_label="temps[C]")
+                    fig.line(times, room_temps, color="blue", legend_label="room temp[C]", line_width=3)
+                    fig.line(times, heater_temps, color="red", legend_label="heater temp[C]", line_width=2)
+                    # fig.line(times, powers, color="green", legend_label="power[W]", line_width=1)
+                    ret_value = file_html(fig, CDN, "my plot")
+                    # show(fig)
+                    break
+            else:
+                if round(room_temp) == room.expected_temp:
+                    break
         # calculate amount of iterations needed * given dt (as given dt is 1 second)
-        ret_value = i * self.dt
-
+        if not chart:
+            ret_value = i * self.dt
         # send to router
         queue.put(ret_value)
-
-        # Testing purposes only
-        # START:
-        output_file("C:/projectspy/Temp-Control/graph.html", title="estimated quick")
-        fig = figure(title="estimated", plot_height=750, plot_width=1350,
-                     x_axis_label="Time[s]", y_axis_label="temps[C]")
-        fig.line(times, room_temps, color="blue", legend_label="room temp[C]", line_width=3)
-        fig.line(times, heater_temps, color="red", legend_label="heater temp[C]", line_width=2)
-        # fig.line(times, powers, color="green", legend_label="power[W]", line_width=1)
-        show(fig)
-        # END
+        return
 
     def heater_temp_calculate(self, watts, room_temp):
 
@@ -126,7 +128,7 @@ class Engine:
         mass = 15
 
         # 1 watt = 1 J/s
-        # 1 kJ = 1W/s / 1000
+        # 1 kJ = 1W * s / 1000
         heat = watts * self.dt / 1000
 
         # Q = m * cp * dT -> dT = Q / m * cp
@@ -141,7 +143,6 @@ class Engine:
 
         # temperature difference
         temp_difference = self.heater_temp_now - room_temp  # C
-        # print("temp difference: ", temp_difference)
 
         # Newton's law of cooling
         # Q = h * A * dT
@@ -149,10 +150,8 @@ class Engine:
 
         heat_given = transfer_out * self.dt  # kJ
 
-        temperature_given = heat_given / (mass * cp)  # C
+        temperature_lost = heat_given / (mass * cp)  # C
 
-        self.heater_temp_now += delta_temp - temperature_given
+        self.heater_temp_now += delta_temp - temperature_lost
 
-        if heat_given < 0:
-            heat_given = abs(heat_given)
         return self.heater_temp_now, heat_given
